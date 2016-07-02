@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<model namespace="Model" sourceassembly="Model.Provider.Sql.dll">
+	<table name="Product" class="Product_Ex" base="Product">
+		<method name="Find" type="list"/>	
+		<method name="Find" type="find">
+			<property name="_ID"/>
+		</method>
+		<detaillist name="_Versions" table="Version" method="find">
+			<property name="_ID"/>
+		</detaillist>
+		<primarykey name="pk">
+			<property name="_ID"/>
+		</primarykey>
+	</table>
+	<table name="Version" class="Version_Ex" base="Version">
+		<method name="Find" type="find">
+			<property name="_ID" />
+		</method>
+		<method name="Find"  type="list">
+			<property name="_Product"/>
+		</method>
+		<method name="Find"  type="find">
+			<property name="_Product"/>
+			<property name="_Version"/>
+		</method>
+		<detail name="_ProductDetails" table="Product" method="Find">
+			<property name="_Product"/>
+		</detail>
+		<detaillist name="_Documents" table="Document" method="Find">
+			<property name="_Product"/>
+			<property name="_Version"/>
+		</detaillist>
+		<primarykey name="pk">
+			<property name="_ID"/>
+		</primarykey>
+	</table>
+	<table name="Document" class="Document_Ex" base="Document">
+		<method name="Find" type="find">
+			<property name="_ID"/>
+		</method>
+		<method name="Find" type="list">
+			<property name="_Product"/>
+			<property name="_Version"/>
+		</method>
+		<detail name="_ProductDetails" table="Product" method="Find">
+			<property name="_Product"/>
+		</detail>
+		<detail name="_VersionDetails" table="Version" method="Find">
+			<property name="_Product"/>
+			<property name="_Version"/>
+		</detail>
+		<primarykey name="pk">
+			<property name="_ID"/>
+		</primarykey>
+	</table>
+</model>
