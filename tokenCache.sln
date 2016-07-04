@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{6E05B029-797F-46EF-9883-41713786A43B}"
 EndProject
@@ -26,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TokenCacheClient", "TokenCacheClient\TokenCacheClient.csproj", "{20C9FD56-1E82-44E9-A314-BB87D6F79D39}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bUtility.Logging", "bUtility.Logging\bUtility.Logging.csproj", "{5AFFB345-BDC3-4B1A-AB85-2B57BA787990}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TokenCacheHost", "TokenCacheHost\TokenCacheHost.csproj", "{3C30EF7F-BEF4-4181-9C99-0BCADD33C881}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -100,6 +102,12 @@ Global
 		{5AFFB345-BDC3-4B1A-AB85-2B57BA787990}.LocalCache|Any CPU.Build.0 = Debug|Any CPU
 		{5AFFB345-BDC3-4B1A-AB85-2B57BA787990}.RemoteCache|Any CPU.ActiveCfg = Debug|Any CPU
 		{5AFFB345-BDC3-4B1A-AB85-2B57BA787990}.RemoteCache|Any CPU.Build.0 = Debug|Any CPU
+		{3C30EF7F-BEF4-4181-9C99-0BCADD33C881}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C30EF7F-BEF4-4181-9C99-0BCADD33C881}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C30EF7F-BEF4-4181-9C99-0BCADD33C881}.LocalCache|Any CPU.ActiveCfg = LocalCache|Any CPU
+		{3C30EF7F-BEF4-4181-9C99-0BCADD33C881}.LocalCache|Any CPU.Build.0 = LocalCache|Any CPU
+		{3C30EF7F-BEF4-4181-9C99-0BCADD33C881}.RemoteCache|Any CPU.ActiveCfg = RemoteCache|Any CPU
+		{3C30EF7F-BEF4-4181-9C99-0BCADD33C881}.RemoteCache|Any CPU.Build.0 = RemoteCache|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

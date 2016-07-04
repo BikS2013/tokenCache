@@ -1,4 +1,5 @@
-﻿using bUtility.TokenCache.Types.SessionSecurity;
+﻿using bUtility.TokenCache;
+using bUtility.TokenCache.Types.SessionSecurity;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -13,7 +14,7 @@ namespace bUtility.RemoteTokenCache
     public class DistributedSessionSecurityTokenCache : SessionSecurityTokenCache, ICustomIdentityConfiguration
     {
         private static object locker = new object();
-        static string applicationId = "61A1195E-7BD3-4EC2-82BC-82582306F8D8";
+        static string applicationId = "AD52759F-7358-40DE-B2B9-6991C13157FC";
 
         public static string ApplicationId
         {
@@ -144,44 +145,30 @@ namespace bUtility.RemoteTokenCache
             });
         }
 
+
         void ICustomIdentityConfiguration.LoadCustomConfiguration(XmlNodeList nodeList)
         {
             // Retrieve the endpoint address of the centralized session security token cache service running in the web farm
-            if (nodeList.Count == 0)
-            {
-                throw new ConfigurationErrorsException("No child config element found under <sessionSecurityTokenCache>.");
-            }
 
-            XmlElement cacheServiceAddressElement = nodeList.Item(0) as XmlElement;
-            if (cacheServiceAddressElement == null || cacheServiceAddressElement.LocalName != "distributedCacheConfiguration")
+            XmlElement cacheServiceAddressElement = nodeList.GetFirst("No child config element found under <sessionSecurityTokenCache>.");
+            if (cacheServiceAddressElement?.LocalName != "distributedCacheConfiguration")
             {
                 throw new ConfigurationErrorsException("First child config element under <sessionSecurityTokenCache> is expected to be <distributedCacheConfiguration>.");
             }
 
-            string cacheServiceAddress;
-            if (cacheServiceAddressElement.Attributes["url"] != null)
-            {
-                cacheServiceAddress = cacheServiceAddressElement.Attributes["url"].Value;
-            }
-            else
-            {
-                throw new ConfigurationErrorsException("<cacheServiceAddress> is expected to contain a 'url' attribute.");
-            }
-
-            int maxCacheSize = 0;
-            if (cacheServiceAddressElement.Attributes["maxCacheSize"] != null)
-            {
-                Int32.TryParse(cacheServiceAddressElement.Attributes["maxCacheSize"].Value, out maxCacheSize);
-            }
+            string cacheServiceAddress = cacheServiceAddressElement.GetStringAttribute("url");
+            int maxCacheSize = cacheServiceAddressElement.GetIntAttribute("maxCacheSize");
+            string appId = cacheServiceAddressElement.GetStringAttribute("applicationID");
 
             // Initialize the proxy to the WebFarmSessionSecurityTokenCacheService
-            Initialize(cacheServiceAddress, maxCacheSize);
+            Initialize(cacheServiceAddress, maxCacheSize, appId);
         }
 
-        private static void Initialize(string cacheServiceAddress, int maxCacheSize)
+        private static void Initialize(string cacheServiceAddress, int maxCacheSize, string applicationId)
         {
             _apiBaseUrl = cacheServiceAddress;
             _internalCache = new RecentlyUsedSessionSecurityTokenCache(maxCacheSize);
+            ApplicationId = applicationId;
         }
         private static string GetKeyGenerationString(SessionSecurityTokenCacheKey key)
         {

@@ -57,6 +57,7 @@
     <Compile Include="SessionCacheKey.cs" />
     <Compile Include="Endpoint.cs" />
     <Compile Include="ReplayCacheEntry.cs" />
+    <Compile Include="TokenCacheException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="tokenCache.snk" />

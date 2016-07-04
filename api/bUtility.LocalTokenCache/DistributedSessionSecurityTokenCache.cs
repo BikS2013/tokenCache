@@ -1,4 +1,5 @@
-﻿using bUtility.TokenCache.Interfaces;
+﻿using bUtility.TokenCache;
+using bUtility.TokenCache.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -18,7 +19,7 @@ namespace bUtility.LocalTokenCache
         System.IdentityModel.Configuration.ICustomIdentityConfiguration
     {
         private static object locker = new object();
-        static string applicationId = "61A1195E-7BD3-4EC2-82BC-82582306F8D8";
+        static string applicationId = "AD52759F-7358-40DE-B2B9-6991C13157FC";
 
         public static string ApplicationId
         {
@@ -56,7 +57,7 @@ namespace bUtility.LocalTokenCache
             var data = cache.AddOrUpdate(new bUtility.TokenCache.Types.SessionSecurity.SessionCacheEntry
             {
                 EndpointId = key.EndpointId,
-                ContextId = GetContextIdString(key),
+                ContextId = key?.ContextId?.ToString(),
                 KeyGeneration = GetKeyGenerationString(key),
                 ExpiryTime = expiryTime,
                 SessionSecurityTokenValue = value,
@@ -76,7 +77,7 @@ namespace bUtility.LocalTokenCache
                 var token = cache.Get(new bUtility.TokenCache.Types.SessionSecurity.SessionCacheKey
                     {
                         EndpointId = key.EndpointId,
-                        ContextId = GetContextIdString(key),
+                        ContextId = key?.ContextId?.ToString(),
                         KeyGeneration = GetKeyGenerationString(key)
                     });
                 if (token != null)
@@ -94,7 +95,7 @@ namespace bUtility.LocalTokenCache
             var data = cache.GetAll(new bUtility.TokenCache.Types.SessionSecurity.Context
                 {
                     EndpointId = endpointId,
-                    ContextId = GetContextIdString(contextId)
+                    ContextId = contextId?.ToString()
                 });
             foreach (var token in data)
             {
@@ -111,7 +112,7 @@ namespace bUtility.LocalTokenCache
             cache.Remove(new bUtility.TokenCache.Types.SessionSecurity.SessionCacheKey
             {
                     EndpointId = key.EndpointId,
-                    ContextId = GetContextIdString(key),
+                    ContextId = key?.ContextId?.ToString(),
                     KeyGeneration = GetKeyGenerationString(key)
                 });
         }
@@ -130,7 +131,7 @@ namespace bUtility.LocalTokenCache
             cache.RemoveAll(new bUtility.TokenCache.Types.SessionSecurity.Context
             {
                     EndpointId = endpointId,
-                    ContextId = GetContextIdString(contextId)
+                    ContextId = contextId?.ToString()
                 });
 
         }
@@ -138,41 +139,27 @@ namespace bUtility.LocalTokenCache
         void ICustomIdentityConfiguration.LoadCustomConfiguration(XmlNodeList nodeList)
         {
             // Retrieve the endpoint address of the centralized session security token cache service running in the web farm
-            if (nodeList.Count == 0)
-            {
-                throw new ConfigurationErrorsException("No child config element found under <sessionSecurityTokenCache>.");
-            }
-
-            XmlElement cacheServiceAddressElement = nodeList.Item(0) as XmlElement;
-            if (cacheServiceAddressElement == null || cacheServiceAddressElement.LocalName != "distributedCacheConfiguration")
+            XmlElement cacheServiceAddressElement = nodeList.GetFirst("No child config element found under <sessionSecurityTokenCache>.");
+            if (cacheServiceAddressElement?.LocalName != "distributedCacheConfiguration")
             {
                 throw new ConfigurationErrorsException("First child config element under <sessionSecurityTokenCache> is expected to be <distributedCacheConfiguration>.");
             }
 
-            string cacheServiceAddress;
-            if (cacheServiceAddressElement.Attributes["connectionString"] != null)
-            {
-                cacheServiceAddress = cacheServiceAddressElement.Attributes["connectionString"].Value;
-            }
-            else
-            {
-                throw new ConfigurationErrorsException("<cacheServiceAddress> is expected to contain a 'connectionString' attribute.");
-            }
+            string cacheServiceAddress = cacheServiceAddressElement.GetStringAttribute("connectionString");
+            int rollingExpiringWindowInMinutes = cacheServiceAddressElement.GetIntAttribute("rollingExpiringWindowInMinutes");
+            int maxCacheSize = cacheServiceAddressElement.GetIntAttribute("maxCacheSize");
 
-            int maxCacheSize = 0;
-            if (cacheServiceAddressElement.Attributes["maxCacheSize"] != null)
-            {
-                Int32.TryParse(cacheServiceAddressElement.Attributes["maxCacheSize"].Value, out maxCacheSize);
-            }
 
             // Initialize the proxy to the WebFarmSessionSecurityTokenCacheService
-            Initialize(cacheServiceAddress, maxCacheSize);
+            Initialize(cacheServiceAddress, maxCacheSize, rollingExpiringWindowInMinutes);
         }
 
-        private static void Initialize(string cacheServiceAddress, int maxCacheSize)
+        private static void Initialize(string cacheServiceAddress, int maxCacheSize, int rollingExpiringWindowInMinutes)
         {
             cache = new bUtility.TokenCache.Implementation.DistributedSessionSecurityTokenCache(
-                () => { return new PersistentLib.SqlServerFactory(cacheServiceAddress); }, bUtility.TokenCache.Extensions.GetSerializationSettings(), 60 );
+                () => new PersistentLib.SqlServerFactory(cacheServiceAddress), 
+                () => bUtility.TokenCache.Extensions.GetSerializationSettings(), 
+                () => rollingExpiringWindowInMinutes);
 
             _internalCache = new RecentlyUsedSessionSecurityTokenCache(maxCacheSize);
         }
@@ -180,17 +167,5 @@ namespace bUtility.LocalTokenCache
         {
             return key.KeyGeneration == null ? null : key.KeyGeneration.ToString();
         }
-
-        private static string GetContextIdString(SessionSecurityTokenCacheKey key)
-        {
-            return GetContextIdString(key.ContextId);
-        }
-
-        private static string GetContextIdString(UniqueId contextId)
-        {
-            return contextId == null ? null : contextId.ToString();
-        }
-
-
     }
 }

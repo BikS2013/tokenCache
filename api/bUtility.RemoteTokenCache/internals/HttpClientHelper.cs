@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using bUtility.TokenCache.Types;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens;
@@ -61,6 +62,13 @@ namespace bUtility.RemoteTokenCache
                     };
 
                     response = client.PostAsync<Rq>(actionUrl, data, formatter).Result;
+
+                    if ( response?.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new TokenCacheException($"unexpected result in RemoteTokenCache HttpClient.Execute. " + 
+                            $"Action url: {actionUrl}, "+
+                            $"Status code: {response.StatusCode}, Reason phrase: {response.ReasonPhrase}");
+                    }
                     try
                     {
                         var result = response.Content.ReadAsAsync<Rs>(new[] { formatter }).Result;
@@ -72,6 +80,10 @@ namespace bUtility.RemoteTokenCache
                         throw new Exception( $"error Reading response. text: {result}", ex);
                     }
                 }
+            }
+            catch (TokenCacheException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -89,9 +101,9 @@ namespace bUtility.RemoteTokenCache
                     finally
                     {
                         if (content != null)
-                            throw new Exception( $"Response = {response}{System.Environment.NewLine}Content = {content}", ex);
+                            throw new Exception($"Response = {response}{System.Environment.NewLine}Content = {content}", ex);
                         else
-                            throw new Exception( $"Response = {response}", ex);
+                            throw new Exception($"Response = {response}", ex);
                     }
                 }
                 throw;

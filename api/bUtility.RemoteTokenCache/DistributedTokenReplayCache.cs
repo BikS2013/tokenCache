@@ -114,38 +114,15 @@ namespace bUtility.RemoteTokenCache
         void ICustomIdentityConfiguration.LoadCustomConfiguration(System.Xml.XmlNodeList nodeList)
         {
             // Retrieve the endpoint address of the centralized session security token cache service running in the web farm
-            if (nodeList.Count == 0)
-            {
-                throw new ConfigurationErrorsException("No child config element found under <tokenReplayCache>.");
-            }
-
-            XmlElement cacheServiceAddressElement = nodeList.Item(0) as XmlElement;
-            if (cacheServiceAddressElement.LocalName != "distributedReplayCacheConfiguration")
+            XmlElement cacheServiceAddressElement = nodeList.GetFirst("No child config element found under <tokenReplayCache>.");
+            if (cacheServiceAddressElement?.LocalName != "distributedReplayCacheConfiguration")
             {
                 throw new ConfigurationErrorsException("First child config element under <tokenReplayCache> is expected to be <distributedReplayCacheConfiguration>.");
             }
 
-            string cacheServiceAddress = null;
-            if (cacheServiceAddressElement.Attributes["url"] != null)
-            {
-                cacheServiceAddress = cacheServiceAddressElement.Attributes["url"].Value;
-            }
-            else
-            {
-                throw new ConfigurationErrorsException("<replayCacheServiceAddress> is expected to contain a 'url' attribute.");
-            }
-
-            int maxCacheSize = 0;
-            if (cacheServiceAddressElement.Attributes["maxCacheSize"] != null)
-            {
-                Int32.TryParse(cacheServiceAddressElement.Attributes["maxCacheSize"].Value, out maxCacheSize);
-            }
-
-            int purgeInterval = 0;
-            if (cacheServiceAddressElement.Attributes["purgeInterval"] != null)
-            {
-                Int32.TryParse(cacheServiceAddressElement.Attributes["purgeInterval"].Value, out purgeInterval);
-            }
+            string cacheServiceAddress = cacheServiceAddressElement.GetStringAttribute("url");
+            int maxCacheSize = cacheServiceAddressElement.GetIntAttribute("maxCacheSize");
+            int purgeInterval = cacheServiceAddressElement.GetIntAttribute("purgeInterval");
 
             // Initialize the proxy to the WebFarmSessionSecurityTokenCacheService
 

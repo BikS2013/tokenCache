@@ -94,5 +94,13 @@ namespace TokenCacheClient
         static void CurrentDomain_DomainUnload(object sender, EventArgs e)
         {
         }
+
+        //γυρίζει το WSFederation σε Reference mode
+        void WSFederationAuthenticationModule_SessionSecurityTokenCreated
+          (object sender, SessionSecurityTokenCreatedEventArgs e)
+        {
+            e.SessionToken.IsReferenceMode = true;
+        }
+
     }
 }

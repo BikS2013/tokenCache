@@ -103,38 +103,15 @@ namespace bUtility.LocalTokenCache
         void ICustomIdentityConfiguration.LoadCustomConfiguration(System.Xml.XmlNodeList nodeList)
         {
             // Retrieve the endpoint address of the centralized session security token cache service running in the web farm
-            if (nodeList.Count == 0)
-            {
-                throw new ConfigurationErrorsException("No child config element found under <tokenReplayCache>.");
-            }
-
-            XmlElement cacheServiceAddressElement = nodeList.Item(0) as XmlElement;
-            if (cacheServiceAddressElement.LocalName != "distributedReplayCacheConfiguration")
+            XmlElement cacheServiceAddressElement = nodeList.GetFirst("No child config element found under <tokenReplayCache>.");
+            if (cacheServiceAddressElement?.LocalName != "distributedReplayCacheConfiguration")
             {
                 throw new ConfigurationErrorsException("First child config element under <tokenReplayCache> is expected to be <distributedReplayCacheConfiguration>.");
             }
+            string cacheServiceAddress = cacheServiceAddressElement.GetStringAttribute("connectionString");
+            int maxCacheSize = cacheServiceAddressElement.GetIntAttribute("maxCacheSize");
+            int purgeInterval = cacheServiceAddressElement.GetIntAttribute("purgeInterval");
 
-            string cacheServiceAddress;
-            if (cacheServiceAddressElement.Attributes["connectionString"] != null)
-            {
-                cacheServiceAddress = cacheServiceAddressElement.Attributes["connectionString"].Value;
-            }
-            else
-            {
-                throw new ConfigurationErrorsException("<cacheServiceAddress> is expected to contain a 'connectionString' attribute.");
-            }
-
-            int maxCacheSize = 0;
-            if (cacheServiceAddressElement.Attributes["maxCacheSize"] != null)
-            {
-                Int32.TryParse(cacheServiceAddressElement.Attributes["maxCacheSize"].Value, out maxCacheSize);
-            }
-
-            int purgeInterval = 0;
-            if (cacheServiceAddressElement.Attributes["purgeInterval"] != null)
-            {
-                Int32.TryParse(cacheServiceAddressElement.Attributes["purgeInterval"].Value, out purgeInterval);
-            }
 
             // Initialize the proxy to the WebFarmSessionSecurityTokenCacheService
 

@@ -12,16 +12,26 @@ namespace bUtility.TokenCache.Implementation
 {
     public class DistributedSessionSecurityTokenCache : IDistributedSessionSecurityTokenCache
     {
+        public delegate int RollingExpirationProvider();
 
         private readonly Func<PersistentLib.ISqlFactory> _sqlConnector;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
         private readonly int _rollingExpiryWindowInMinutes;
-        public DistributedSessionSecurityTokenCache(Func<PersistentLib.ISqlFactory> sqlConnector, JsonSerializerSettings jsonSerializerSettings, int rollingExpiryWindowInMinutes)
+        protected DistributedSessionSecurityTokenCache(Func<PersistentLib.ISqlFactory> sqlConnector, 
+            JsonSerializerSettings jsonSerializerSettings, 
+            int rollingExpiryWindowInMinutes)
         {
             _sqlConnector = sqlConnector;
             _jsonSerializerSettings = jsonSerializerSettings;
             _rollingExpiryWindowInMinutes = rollingExpiryWindowInMinutes;
         }
+
+        public DistributedSessionSecurityTokenCache(Func<PersistentLib.ISqlFactory> sqlConnector,
+            Func<JsonSerializerSettings> jsonSettingProvider, 
+            RollingExpirationProvider expirationValueProvider): this(sqlConnector, jsonSettingProvider(), expirationValueProvider())
+        {
+        }
+
         private ISqlFactory GetSqlServerFactory()
         {
             return _sqlConnector();
