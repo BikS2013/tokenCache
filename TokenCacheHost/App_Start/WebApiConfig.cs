@@ -69,7 +69,7 @@ namespace TokenCacheHost
             container.Options.DefaultScopedLifestyle = new WebApiRequestLifestyle();
 
             container.Register<Func<PersistentLib.ISqlFactory>>(() => () => new PersistentLib.SqlServerFactory(cp.TokenCacheConnection));
-            container.Register<Func<JsonSerializerSettings>>(() => () => bUtility.TokenCache.Extensions.GetSerializationSettings());
+            container.Register<Func<JsonSerializerSettings>>(() => () => GetSerializationSettings());
             container.Register<DistributedSessionSecurityTokenCache.RollingExpirationProvider>(() => () => cp.RollingExpiryWindowInMinutes );
 
             container.Register<IDistributedSessionSecurityTokenCache, DistributedSessionSecurityTokenCache>();
@@ -119,6 +119,7 @@ namespace TokenCacheHost
             settings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
             //settings.Error = ExceptionHandlingAttribute.OnSerializationError;
         }
+
         private static void RegisterHandlers(
             System.Collections.ObjectModel.Collection<System.Net.Http.DelegatingHandler> handlers,
             ConfigProfile cp)

@@ -118,10 +118,6 @@
     <Content Include="tokenCache.snk" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\api\bUtility.TokenCache.Common\bUtility.TokenCache.Common.csproj">
-      <Project>{904047b1-6e61-4d11-8588-7238d3cd7053}</Project>
-      <Name>bUtility.TokenCache.Common</Name>
-    </ProjectReference>
     <ProjectReference Include="..\api\bUtility.TokenCache.Implementation\bUtility.TokenCache.Implementation.csproj">
       <Project>{833991A5-BDF7-45EC-AEAC-7AF8814AFE56}</Project>
       <Name>bUtility.TokenCache.Implementation</Name>
