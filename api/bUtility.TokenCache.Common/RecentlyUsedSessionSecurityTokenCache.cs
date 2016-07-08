@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IdentityModel.Tokens;
 
-namespace bUtility.RemoteTokenCache
+namespace bUtility.TokenCache
 {
     //similar to framework's
-    internal class RecentlyUsedSessionSecurityTokenCache : SessionSecurityTokenCache
+    public class RecentlyUsedSessionSecurityTokenCache : SessionSecurityTokenCache
     {
 #pragma warning disable 1591
         public const int DefaultTokenCacheSize = 20000;
