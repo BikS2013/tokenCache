@@ -10,10 +10,7 @@ namespace bUtility.Logging
     {
         public static string ToJSON(this Exception ex)
         {
-            Newtonsoft.Json.JsonSerializerSettings settings = new Newtonsoft.Json.JsonSerializerSettings();
-            settings.Formatting = Newtonsoft.Json.Formatting.Indented;
-            var text = Newtonsoft.Json.JsonConvert.SerializeObject(ex, settings);
-            return text;
+            return Newtonsoft.Json.JsonConvert.SerializeObject(ex, new Newtonsoft.Json.JsonSerializerSettings { Formatting = Newtonsoft.Json.Formatting.Indented });
         }
 
     }
