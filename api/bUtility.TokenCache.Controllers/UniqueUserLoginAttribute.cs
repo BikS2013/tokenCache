@@ -6,9 +6,9 @@ using System.Web.Http.Controllers;
 using System.Web.Http.Filters;
 using System.Net;
 using System.Net.Http;
-using bUtility.Services.Controllers.TokenCache.local;
 using bUtility.TokenCache.Implementation;
 using bUtility.TokenCache.Interfaces;
+using bUtility.Logging;
 
 namespace bUtility.TokenCache.Filters
 {
@@ -54,13 +54,12 @@ namespace bUtility.TokenCache.Filters
             catch (Exception ex)
             {
                 failed = true;
-                ex.ToEventLog();
+                Logger.Current.Error(ex);
             }
             if (failed)
             {
-                string user=(Thread.CurrentPrincipal != null && Thread.CurrentPrincipal.Identity != null) ? Thread.CurrentPrincipal.Identity.Name : "NULL";
-                ("Duplicate login or Rolling Session Expired:" + user).ToEventLog();
-                actionContext.Response = actionContext.Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Error 5.1.1");
+                Logger.Current.Error($"Duplicate login or Rolling Session Expired: {Thread.CurrentPrincipal?.Identity?.Name}");
+                actionContext.Response = actionContext.Request.CreateErrorResponse(HttpStatusCode.Unauthorized, "Error 5.1.1.TC");
             }
             else
                 base.OnActionExecuting(actionContext);

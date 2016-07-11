@@ -6,7 +6,6 @@ namespace TokenCacheClient
     public class ConfigProfile
     {
         public string TokenCacheConnection { get; private set; }
-        public string InternetBankingAuditConnection { get; private set; }
 
         public bool RequireHttps { get; private set; }
 

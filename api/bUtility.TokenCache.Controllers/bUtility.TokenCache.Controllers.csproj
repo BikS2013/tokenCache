@@ -66,7 +66,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TokenCacheController.cs" />
     <Compile Include="TokenReplayCacheController.cs" />
@@ -84,6 +83,10 @@
     <None Include="_CreateNewNuGetPackage\RunMeToUploadNuGetPackage.cmd" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\bUtility.Logging\bUtility.Logging.csproj">
+      <Project>{5AFFB345-BDC3-4B1A-AB85-2B57BA787990}</Project>
+      <Name>bUtility.Logging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\bUtility.TokenCache.Implementation\bUtility.TokenCache.Implementation.csproj">
       <Project>{833991a5-bdf7-45ec-aeac-7af8814afe56}</Project>
       <Name>bUtility.TokenCache.Implementation</Name>

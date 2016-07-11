@@ -96,7 +96,7 @@ namespace TokenCacheClient
 
 
             //filters.Add(new RequestValidUserIDAttribute());
-            Func<PersistentLib.ISqlFactory> auditSqlFactoryProvider = () => { return new PersistentLib.SqlServerFactory(cp.InternetBankingAuditConnection); };
+            Func<PersistentLib.ISqlFactory> auditSqlFactoryProvider = () => { return new PersistentLib.SqlServerFactory(cp.TokenCacheConnection); };
             if (cp.EnforceUniqueUserLogin)
                 filters.Add(new bUtility.TokenCache.Filters.UniqueUserLoginAttribute(
                     auditSqlFactoryProvider,
