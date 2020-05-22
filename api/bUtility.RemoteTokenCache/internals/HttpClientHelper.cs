@@ -28,7 +28,7 @@ namespace bUtility.RemoteTokenCache
             }
         }
         static HttpClientHelper()
-        {
+        {βαν
 #warning remove from production
             ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
         }
@@ -61,23 +61,31 @@ namespace bUtility.RemoteTokenCache
                         }
                     };
 
-                    response = client.PostAsync<Rq>(actionUrl, data, formatter).Result;
+                    Task<HttpResponseMessage> taskPost = client.PostAsync<Rq>(actionUrl, data, formatter);
+                    taskPost.Wait();
+                    response = taskPost.Result;
 
-                    if ( response?.StatusCode != HttpStatusCode.OK)
+                    if (response?.StatusCode != HttpStatusCode.OK)
                     {
-                        throw new TokenCacheException($"unexpected result in RemoteTokenCache HttpClient.Execute. " + 
-                            $"Action url: {actionUrl}, "+
+                        throw new TokenCacheException($"unexpected result in RemoteTokenCache HttpClient.Execute. " +
+                            $"Action url: {actionUrl}, " +
                             $"Status code: {response.StatusCode}, Reason phrase: {response.ReasonPhrase}");
                     }
                     try
                     {
-                        var result = response.Content.ReadAsAsync<Rs>(new[] { formatter }).Result;
+                        Task<Rs> taskReadRs = response.Content.ReadAsAsync<Rs>(new[] { formatter });
+                        taskReadRs.Wait();
+                        Rs result = taskReadRs.Result;
+
                         return result;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        var result = response.Content.ReadAsAsync<string>().Result;
-                        throw new Exception( $"error Reading response. text: {result}", ex);
+                        Task<string> taskReadString = response.Content.ReadAsAsync<string>();
+                        taskReadString.Wait();
+                        string result = taskReadString.Result;
+
+                        throw new Exception($"error Reading response. text: {result}", ex);
                     }
                 }
             }
@@ -96,7 +104,9 @@ namespace bUtility.RemoteTokenCache
                     string content = null;
                     try
                     {
-                        content = response.Content.ReadAsStringAsync().Result;
+                        Task<string> taskReadString = response.Content.ReadAsStringAsync();
+                        taskReadString.Wait();
+                        content = taskReadString.Result;
                     }
                     finally
                     {
