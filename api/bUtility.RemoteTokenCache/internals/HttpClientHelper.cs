@@ -28,7 +28,7 @@ namespace bUtility.RemoteTokenCache
             }
         }
         static HttpClientHelper()
-        {βαν
+        {
 #warning remove from production
             ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
         }
