@@ -36,18 +36,16 @@
     <AssemblyOriginatorKeyFile>tokenCache.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\..\..\packages\Newtonsoft.Json.6.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.IdentityModel.Services" />
-    <Reference Include="System.Net.Http.Formatting, Version=5.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Client.5.1.2\lib\net45\System.Net.Http.Formatting.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Net.Http.Formatting, Version=5.2.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.AspNet.WebApi.Client.5.2.3\lib\net45\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
@@ -58,8 +56,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Async\ApiHelperAsync.cs" />
+    <Compile Include="Async\ApiHelperAsync.SessionSecurity.cs" />
+    <Compile Include="Async\ApiHelperAsync.TokenReplay.cs" />
+    <Compile Include="Async\DistributedSessionSecurityTokenCacheAsync.cs" />
+    <Compile Include="Async\HttpClientHelperAsync.cs" />
+    <Compile Include="Async\HttpClientHelperAsync.SessionSecurity.cs" />
+    <Compile Include="Async\HttpClientHelperAsync.TokenReplay.cs" />
     <Compile Include="DistributedSessionSecurityTokenCache.cs" />
     <Compile Include="DistributedTokenReplayCache.cs" />
+    <Compile Include="Async\DistributedTokenReplayCacheAsync.cs" />
     <Compile Include="internals\ApiHelper.cs" />
     <Compile Include="internals\ApiHelper.SessionSecurity.cs" />
     <Compile Include="internals\ApiHelper.TokenReplay.cs" />
