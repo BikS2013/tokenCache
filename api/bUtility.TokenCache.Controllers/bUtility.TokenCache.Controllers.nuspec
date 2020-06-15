@@ -21,10 +21,12 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\debug\bUtility.TokenCache.Types.dll" target="lib\net45" />
-    <file src="bin\debug\bUtility.TokenCache.Interfaces.dll" target="lib\net45" />
-    <file src="bin\debug\bUtility.TokenCache.Implementation.dll" target="lib\net45" />
-    <file src="bin\debug\bUtility.TokenCache.Data.dll" target="lib\net45" />
+    <file src="bin\$configuration$\bUtility.TokenCache.Types.pdb" target="lib\net45" />
+    <file src="bin\$configuration$\bUtility.TokenCache.Interfaces.pdb" target="lib\net45" />
+    <file src="bin\$configuration$\bUtility.TokenCache.Implementation.pdb" target="lib\net45" />
+    <file src="bin\$configuration$\bUtility.TokenCache.Data.pdb" target="lib\net45" />
+    <file src="bin\$configuration$\bUtility.TokenCache.Controllers.pdb" target="lib\net45" />
+    <file src="bin\$configuration$\bUtility.Logging.pdb" target="lib\net45" />
   </files>
 </package>
 
