@@ -10,6 +10,7 @@ using SimpleInjector.Integration.WebApi;
 using bUtility.TokenCache.Interfaces;
 using bUtility.TokenCache.Implementation;
 using Newtonsoft.Json;
+using bUtility.WebApi;
 
 namespace TokenCacheHost
 {
@@ -24,7 +25,7 @@ namespace TokenCacheHost
                 GlobalConfiguration.Configure((httpConf) =>
                 {
                     RegisterRoutes(httpConf, cp);
-                    //RegisterGlobalFilters(httpConf.Filters, cp);
+                    RegisterGlobalFilters(httpConf.Filters, cp);
                     //CustomizeFormatters(httpConf.Formatters);
                     //RegisterHandlers(httpConf.MessageHandlers, cp);
                     RegisterLocalServices(cp);
@@ -84,7 +85,7 @@ namespace TokenCacheHost
 
         public static void RegisterGlobalFilters(HttpFilterCollection filters, ConfigProfile cp)
         {
-            //filters.Add(new ExceptionHandlingAttribute());
+            filters.Add(new ExceptionHandlingAttribute());
             //filters.Add(new NoCacheAttribute());
             //if (cp.RequireHttps)
             //{
@@ -117,7 +118,7 @@ namespace TokenCacheHost
             //settings.ContractResolver = new SensitiveDataContractResolver();
             settings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
             settings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-            //settings.Error = ExceptionHandlingAttribute.OnSerializationError;
+            settings.Error = ExceptionHandlingAttribute.OnSerializationError;
         }
 
         private static void RegisterHandlers(
