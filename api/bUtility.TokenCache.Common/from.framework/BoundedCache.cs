@@ -247,9 +247,19 @@ namespace bUtility.TokenCache
 
             // -1 milleseconds is infinite timeout
             _readWriteLock.AcquireWriterLock(TimeSpan.FromMilliseconds(-1));
+
             try
             {
                 EnforceQuota();
+            }
+            catch
+            {
+                _readWriteLock.ReleaseWriterLock();
+                throw;
+            }
+
+            try
+            {
                 if (_items.ContainsKey(key))
                 {
                     return false;
