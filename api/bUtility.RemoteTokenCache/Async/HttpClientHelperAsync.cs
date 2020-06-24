@@ -18,19 +18,19 @@ namespace bUtility.RemoteTokenCache
 {
     internal partial class HttpClientHelperAsync
     {
-        readonly string _webApiBaseUrl = null;
-
-        public HttpClientHelperAsync(string webApiBaseUrl)
+        static readonly JsonMediaTypeFormatter formatter = new JsonMediaTypeFormatter
         {
-            _webApiBaseUrl = webApiBaseUrl;
-            if (!_webApiBaseUrl.EndsWith("/")) {
-                _webApiBaseUrl = _webApiBaseUrl + "/";
+            SerializerSettings = new JsonSerializerSettings
+            {
+                Formatting = Newtonsoft.Json.Formatting.None
             }
-        }
-        static HttpClientHelperAsync()
+        };
+
+        readonly HttpClient _httpClient;
+
+        public HttpClientHelperAsync(HttpClient httpClient)
         {
-#warning remove from production
-            ServicePointManager.ServerCertificateValidationCallback = (sender, cert, chain, sslPolicyErrors) => true;
+            _httpClient = httpClient;
         }
 
         internal async Task<Rs> ExecuteAsync<Rq, Rs>(Rq data, string actionUrl)
@@ -38,32 +38,23 @@ namespace bUtility.RemoteTokenCache
             HttpResponseMessage response = null;
             try
             {
-                using (HttpClient client = new HttpClient())
+                var url = _httpClient.BaseAddress.ToString() + actionUrl;
+                using (var request = new HttpRequestMessage(HttpMethod.Post, url))
                 {
-                    client.BaseAddress = new Uri(_webApiBaseUrl);
-
-                    client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    request.Content = new StringContent(JsonConvert.SerializeObject(data), 
+                        Encoding.UTF8, "application/json");
 
                     var token = GetBootstrapContextToken();
                     if (token != null)
                     {
                         var httpFriendlyToken = Convert.ToBase64String(Encoding.UTF8.GetBytes(token));
-                        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("SAML", httpFriendlyToken);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("SAML", httpFriendlyToken);
                     }
 
-                    var formatter = new JsonMediaTypeFormatter
-                    {
-                        SerializerSettings = new JsonSerializerSettings
-                        {
-                            Formatting = Newtonsoft.Json.Formatting.Indented
-                        }
-                    };
-
-                    response = await client.PostAsync<Rq>(actionUrl, data, formatter);
+                    response = await _httpClient.SendAsync(request);//, HttpCompletionOption.ResponseHeadersRead
                     if (response?.StatusCode != HttpStatusCode.OK)
                     {
-                        throw new TokenCacheException($"unexpected result in RemoteTokenCache HttpClient.Execute. " +
+                        throw new TokenCacheException($"unexpected result in RemoteTokenCache HttpClientHelperAsync.ExecuteAsync. " +
                             $"Action url: {actionUrl}, " +
                             $"Status code: {response.StatusCode}, Reason phrase: {response.ReasonPhrase}");
                     }
@@ -86,7 +77,7 @@ namespace bUtility.RemoteTokenCache
             {
                 if (response == null)
                 {
-                    throw new Exception("error executing HttpClientHelper", ex);
+                    throw new Exception("error executing HttpClientHelperAsync", ex);
                 }
                 else
                 {
@@ -120,11 +111,50 @@ namespace bUtility.RemoteTokenCache
                 }
 
                 StringBuilder output = new StringBuilder(128);
-                context.SecurityTokenHandler.WriteToken(new XmlTextWriter(new StringWriter(output)), token);
+                using (var stringWriter = new StringWriter(output))
+                {
+                    using (var xmlTextWriter = new XmlTextWriter(stringWriter))
+                    {
+                        context.SecurityTokenHandler.WriteToken(xmlTextWriter, token);
+                    }
+                }
                 return output.ToString();
             }
             return null;
         }
 
+        internal static HttpClient CreateHttpClient(
+            string baseAddress,
+            int servicePointConnectionLimit,
+            int httpClientTimeoutMsecs)
+        {
+            HttpClient result;
+
+            if (!string.IsNullOrWhiteSpace(baseAddress))
+            {
+                Uri uriBaseAddress = new Uri(baseAddress);
+                ServicePoint sp = ServicePointManager.FindServicePoint(uriBaseAddress);
+
+                sp.Expect100Continue = false;
+                sp.UseNagleAlgorithm = false;
+
+                sp.ConnectionLimit = servicePointConnectionLimit;
+
+                result = new HttpClient
+                {
+                    Timeout = TimeSpan.FromMilliseconds(httpClientTimeoutMsecs),
+                    BaseAddress = uriBaseAddress
+                };
+            }
+            else
+            {
+                result = new HttpClient
+                {
+                    Timeout = TimeSpan.FromMilliseconds(httpClientTimeoutMsecs)
+                };
+            }
+
+            return result;
+        }
     }
 }
