@@ -51,7 +51,7 @@ namespace bUtility.RemoteTokenCache
                         request.Headers.Authorization = new AuthenticationHeaderValue("SAML", httpFriendlyToken);
                     }
 
-                    response = await _httpClient.SendAsync(request);//, HttpCompletionOption.ResponseHeadersRead
+                    response = await _httpClient.SendAsync(request);
                     if (response?.StatusCode != HttpStatusCode.OK)
                     {
                         throw new TokenCacheException($"unexpected result in RemoteTokenCache HttpClientHelperAsync.ExecuteAsync. " +
