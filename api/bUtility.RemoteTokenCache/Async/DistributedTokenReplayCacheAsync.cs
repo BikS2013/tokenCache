@@ -5,6 +5,8 @@ using System.Configuration;
 using System.IdentityModel.Configuration;
 using System.IdentityModel.Services;
 using System.IdentityModel.Tokens;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Xml;
 
 
@@ -15,6 +17,7 @@ namespace bUtility.RemoteTokenCache
         private string _apiBaseUrl = null;
         private DefaultTokenReplayCache _internalCache = null;
         static SecurityTokenSerializer _securityTokenSerializer = null;
+        private HttpClient _httpClient;
 
         TimeSpan _purgeInterval;
         DateTime _nextPurgeTime = DateTime.UtcNow;
@@ -33,7 +36,7 @@ namespace bUtility.RemoteTokenCache
 
             _internalCache.AddOrUpdate(key, securityToken, expirationTime);
 
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
             helper.AddOrUpdate(new ReplayCacheEntry()
             {
@@ -49,7 +52,7 @@ namespace bUtility.RemoteTokenCache
 
             if (!_internalCache.Contains(key))
             {
-                ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+                ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
                 var token = helper.Get(key);
                 if (token != null && token.SecurityToken != null)
@@ -68,7 +71,7 @@ namespace bUtility.RemoteTokenCache
             var localToken = _internalCache.Get(key);
             if (localToken == null)
             {
-                ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+                ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
                 var token = helper.Get(key);
                 if (token != null && token.SecurityToken != null)
@@ -88,7 +91,7 @@ namespace bUtility.RemoteTokenCache
 
             _internalCache.Remove(key);
 
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
             helper.Remove(key);
 
@@ -107,7 +110,7 @@ namespace bUtility.RemoteTokenCache
 
             _nextPurgeTime = currentTime.Add(_purgeInterval);
 
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
             helper.Purge();
         }
@@ -122,21 +125,32 @@ namespace bUtility.RemoteTokenCache
             }
 
             string cacheServiceAddress = cacheServiceAddressElement.GetStringAttribute("url");
+            if (!cacheServiceAddress.EndsWith("/"))
+            {
+                cacheServiceAddress = cacheServiceAddress + "/";
+            }
+
             int maxCacheSize = cacheServiceAddressElement.GetIntAttribute("maxCacheSize");
             int purgeInterval = cacheServiceAddressElement.GetIntAttribute("purgeInterval");
 
-            // Initialize the proxy to the WebFarmSessionSecurityTokenCacheService
+            int servicePointConnectionLimit = cacheServiceAddressElement.GetIntAttribute("servicePointConnectionLimit");
+            int httpClientTimeoutMsecs = cacheServiceAddressElement.GetIntAttribute("httpClientTimeoutMsecs");
 
-            this.Initialize(cacheServiceAddress, maxCacheSize, purgeInterval);
+            // Initialize the proxy to the WebFarmSessionSecurityTokenCacheService
+            Initialize(cacheServiceAddress, maxCacheSize, purgeInterval, servicePointConnectionLimit, httpClientTimeoutMsecs);
         }
 
-        private void Initialize(string cacheServiceAddress, int maxCacheSize, int purgeIntervalMinutes)
+        private void Initialize(string cacheServiceAddress, int maxCacheSize, int purgeIntervalMinutes, int servicePointConnectionLimit, int httpClientTimeoutMsecs)
         {
             _apiBaseUrl = cacheServiceAddress;
 
             _purgeInterval = TimeSpan.FromMinutes(purgeIntervalMinutes);
 
             _internalCache = new DefaultTokenReplayCache(maxCacheSize, _purgeInterval != TimeSpan.Zero ? _purgeInterval : DefaultTokenReplayCache.DefaultTokenReplayCachePurgeInterval);
+
+            _httpClient = HttpClientHelperAsync.CreateHttpClient(cacheServiceAddress, servicePointConnectionLimit, httpClientTimeoutMsecs);
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
     }
 }

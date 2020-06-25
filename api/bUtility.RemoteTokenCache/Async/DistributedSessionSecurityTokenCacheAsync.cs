@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IdentityModel.Configuration;
 using System.IdentityModel.Tokens;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading;
 using System.Xml;
@@ -15,6 +17,7 @@ namespace bUtility.RemoteTokenCache
     {
         private static object locker = new object();
         static string applicationId = "AD52759F-7358-40DE-B2B9-6991C13157FC";
+        private static HttpClient _httpClient;
 
         public static string ApplicationId
         {
@@ -42,7 +45,7 @@ namespace bUtility.RemoteTokenCache
         public override void AddOrUpdate(SessionSecurityTokenCacheKey key, SessionSecurityToken value, DateTime expiryTime)
         {
             string tokenId = null;
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
             var claimsIdentity = Thread.CurrentPrincipal.Identity as ClaimsIdentity;
             if (claimsIdentity != null && claimsIdentity.BootstrapContext != null)
             {
@@ -69,7 +72,7 @@ namespace bUtility.RemoteTokenCache
             var resLocal = _internalCache.Get(key);
             if (resLocal == null)
             {
-                ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+                ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
                 var token = helper.Get(new SessionCacheKey()
                 {
@@ -90,7 +93,7 @@ namespace bUtility.RemoteTokenCache
         public override IEnumerable<SessionSecurityToken> GetAll(string endpointId, UniqueId contextId)
         {
 #warning perhaps implement this for in memory
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
             var res = helper.GetAll(new Context()
             {
@@ -111,7 +114,7 @@ namespace bUtility.RemoteTokenCache
         {
             _internalCache.Remove(key);
 
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
             helper.Remove(new SessionCacheKey()
             {
@@ -125,7 +128,7 @@ namespace bUtility.RemoteTokenCache
         {
             _internalCache.RemoveAll(endpointId);
 
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
             helper.RemoveAllByEndpointId(new Endpoint() { EndpointId = endpointId });
         }
@@ -134,7 +137,7 @@ namespace bUtility.RemoteTokenCache
         {
             _internalCache.RemoveAll(endpointId, contextId);
 
-            ApiHelperAsync helper = new ApiHelperAsync(_apiBaseUrl);
+            ApiHelperAsync helper = new ApiHelperAsync(_httpClient);
 
             helper.RemoveAll(new Context()
             {
@@ -155,19 +158,31 @@ namespace bUtility.RemoteTokenCache
             }
 
             string cacheServiceAddress = cacheServiceAddressElement.GetStringAttribute("url");
+            if (!cacheServiceAddress.EndsWith("/"))
+            {
+                cacheServiceAddress = cacheServiceAddress + "/";
+            }
             int maxCacheSize = cacheServiceAddressElement.GetIntAttribute("maxCacheSize");
             string appId = cacheServiceAddressElement.GetStringAttribute("applicationID");
 
+            int servicePointConnectionLimit = cacheServiceAddressElement.GetIntAttribute("servicePointConnectionLimit");
+            int httpClientTimeoutMsecs = cacheServiceAddressElement.GetIntAttribute("httpClientTimeoutMsecs");
+
             // Initialize the proxy to the WebFarmSessionSecurityTokenCacheService
-            Initialize(cacheServiceAddress, maxCacheSize, appId);
+            Initialize(cacheServiceAddress, maxCacheSize, appId, servicePointConnectionLimit, httpClientTimeoutMsecs);
         }
 
-        private static void Initialize(string cacheServiceAddress, int maxCacheSize, string applicationId)
+        private static void Initialize(string cacheServiceAddress, int maxCacheSize, string applicationId, int servicePointConnectionLimit, int httpClientTimeoutMsecs)
         {
             _apiBaseUrl = cacheServiceAddress;
             _internalCache = new RecentlyUsedSessionSecurityTokenCache(maxCacheSize);
             ApplicationId = applicationId;
+
+            _httpClient = HttpClientHelperAsync.CreateHttpClient(cacheServiceAddress, servicePointConnectionLimit, httpClientTimeoutMsecs);
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
+
         private static string GetKeyGenerationString(SessionSecurityTokenCacheKey key)
         {
             return key.KeyGeneration == null ? null : key.KeyGeneration.ToString();

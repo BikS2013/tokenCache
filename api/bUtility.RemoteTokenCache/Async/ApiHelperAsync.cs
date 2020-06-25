@@ -1,15 +1,18 @@
 ﻿using bUtility.TokenCache.Types;
 using System;
+using System.Net.Http;
 
 namespace bUtility.RemoteTokenCache
 {
     internal partial class ApiHelperAsync
     {
-        private string _apiBaseUrl = null;
-        public ApiHelperAsync(string apiBaseUrl)
+        private readonly HttpClient _httpClient;
+
+        public ApiHelperAsync(HttpClient httpClient)
         {
-            _apiBaseUrl = apiBaseUrl;
+            _httpClient = httpClient;
         }
+        
         private RequestHeader ApiHeader
         {
             get
