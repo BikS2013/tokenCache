@@ -1,13 +1,11 @@
 ﻿using bUtility.TokenCache.Types;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -18,14 +16,6 @@ namespace bUtility.RemoteTokenCache
 {
     internal partial class HttpClientHelperAsync
     {
-        static readonly JsonMediaTypeFormatter formatter = new JsonMediaTypeFormatter
-        {
-            SerializerSettings = new JsonSerializerSettings
-            {
-                Formatting = Newtonsoft.Json.Formatting.None
-            }
-        };
-
         readonly HttpClient _httpClient;
 
         public HttpClientHelperAsync(HttpClient httpClient)
@@ -41,7 +31,7 @@ namespace bUtility.RemoteTokenCache
                 var url = _httpClient.BaseAddress.ToString() + actionUrl;
                 using (var request = new HttpRequestMessage(HttpMethod.Post, url))
                 {
-                    request.Content = new StringContent(JsonConvert.SerializeObject(data), 
+                    request.Content = new StringContent(JsonConvert.SerializeObject(data),
                         Encoding.UTF8, "application/json");
 
                     var token = GetBootstrapContextToken();
@@ -51,50 +41,36 @@ namespace bUtility.RemoteTokenCache
                         request.Headers.Authorization = new AuthenticationHeaderValue("SAML", httpFriendlyToken);
                     }
 
-                    response = await _httpClient.SendAsync(request);
+                    response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
                     if (response?.StatusCode != HttpStatusCode.OK)
                     {
                         throw new TokenCacheException($"unexpected result in RemoteTokenCache HttpClientHelperAsync.ExecuteAsync. " +
                             $"Action url: {actionUrl}, " +
                             $"Status code: {response.StatusCode}, Reason phrase: {response.ReasonPhrase}");
                     }
+
+                    string contentText = default(string);
                     try
                     {
-                        return await response.Content.ReadAsAsync<Rs>(new[] { formatter });
+                        contentText = await response.Content.ReadAsStringAsync();
+                        return JsonConvert.DeserializeObject<Rs>(contentText);
                     }
                     catch (Exception ex)
                     {
-                        string result = await response.Content.ReadAsAsync<string>();
-                        throw new Exception($"error Reading response. text: {result}", ex);
+                        throw new Exception($"error Reading response. Content text: [{contentText}]", ex);
                     }
                 }
             }
-            catch (TokenCacheException)
+            catch
             {
-                throw;
+                throw;            
             }
-            catch (Exception ex)
+            finally
             {
-                if (response == null)
+                if (response != null)
                 {
-                    throw new Exception("error executing HttpClientHelperAsync", ex);
+                    response.Dispose();
                 }
-                else
-                {
-                    string content = null;
-                    try
-                    {
-                        content = await response.Content.ReadAsStringAsync();
-                    }
-                    finally
-                    {
-                        if (content != null)
-                            throw new Exception($"Response = {response}{System.Environment.NewLine}Content = {content}", ex);
-                        else
-                            throw new Exception($"Response = {response}", ex);
-                    }
-                }
-                throw;
             }
         }
 
