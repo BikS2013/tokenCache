@@ -46,7 +46,7 @@ namespace bUtility.TokenCache.Implementation
                     request.EndpointId,
                     request.ContextId,
                     request.KeyGeneration,
-                    JsonConvert.SerializeObject(request.SessionSecurityTokenValue, _jsonSerializerSettings).ToString(),
+                    request.SessionSecurityTokenValue.Serialize(_jsonSerializerSettings),
                     request.SessionSecurityTokenID,
                     request.ExpiryTime.ToLocalTime(),
                     DateTime.Now.AddMinutes(_rollingExpiryWindowInMinutes),
@@ -68,7 +68,7 @@ namespace bUtility.TokenCache.Implementation
                 foreach (var token in tokens)
                 {
                     deserializedTokens.Add(
-                        JsonConvert.DeserializeObject<SessionSecurityToken>(token, _jsonSerializerSettings)
+                        token.Deserialize(_jsonSerializerSettings)
                         );
                 }
                 return deserializedTokens;
@@ -84,8 +84,7 @@ namespace bUtility.TokenCache.Implementation
                     request.EndpointId,
                     request.ContextId,
                     request.KeyGeneration);
-                var response = JsonConvert.DeserializeObject<SessionSecurityToken>(token, _jsonSerializerSettings);
-                return response;
+                return token.Deserialize(_jsonSerializerSettings);
             }
         }
 
