@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="DistributedSessionSecurityTokenCache.cs" />
     <Compile Include="DistributedTokenReplayCache.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlFactoryProvider.cs" />
   </ItemGroup>
