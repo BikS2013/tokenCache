@@ -19,7 +19,8 @@ namespace bUtility.TokenCache.Data
             System.DateTime rollingExpiryTime,
             string userName)
         {
-
+            if (securityTokenValue == null || sessionSecurityTokenID == null)
+                return false;
 
             try
             {
@@ -57,7 +58,7 @@ namespace bUtility.TokenCache.Data
                     };
                     int updated = existingToken.Update("ContextID = @ContextID, EndpointID = @EndpointID, KeyGeneration = @KeyGeneration, ExpiryTime = @ExpiryTime, RollingExpiryTime = @RollingExpiryTime, SessionSecurityTokenValue = @SessionSecurityTokenValue, SessionSecurityTokenID = @SessionSecurityTokenID ", " UserName = @UserName and EndpointID = @EndpointID and ExpiryTime <= @ExpiryTime");
                     if (updated == 0)
-                        throw new Exception("Newer token in cache.");
+                        return false;
                 }
                 catch (Exception ex)
                 {
