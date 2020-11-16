@@ -67,7 +67,7 @@ namespace TokenCacheHost
             );
 
             Container container = new Container();
-            container.Options.DefaultScopedLifestyle = new WebApiRequestLifestyle();
+            container.Options.DefaultScopedLifestyle = new SimpleInjector.Lifestyles.AsyncScopedLifestyle();
 
             container.Register<Func<PersistentLib.ISqlFactory>>(() => () => new PersistentLib.SqlServerFactory(cp.TokenCacheConnection));
             container.Register<Func<JsonSerializerSettings>>(() => () => GetSerializationSettings());

@@ -53,6 +53,7 @@ namespace bUtility.RemoteTokenCache
                 if (bootstrap != null && bootstrap.SecurityToken != null)
                     tokenId = bootstrap.SecurityToken.Id;
             }
+            if (tokenId == null || value == null) return;
             var res = helper.AddOrUpdate(new SessionCacheEntry()
             {
                 EndpointId = key.EndpointId,

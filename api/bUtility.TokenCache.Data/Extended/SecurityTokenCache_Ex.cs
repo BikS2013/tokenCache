@@ -19,7 +19,8 @@ namespace bUtility.TokenCache.Data
             System.DateTime rollingExpiryTime,
             string userName)
         {
-
+            if (securityTokenValue == null || sessionSecurityTokenID == null)
+                return false;
 
             try
             {
